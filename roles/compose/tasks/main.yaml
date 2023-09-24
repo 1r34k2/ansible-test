@@ -1,0 +1,10 @@
+---
+- name: Copy docker-compose and project files to host
+  copy:
+    src: ~/Desktop/ansible-test/docker-compose
+    dest: ~/
+- name: Start container using docker-compose
+  shell: docker-compose up -d
+  args:
+    chdir: ~/docker-compose
+  

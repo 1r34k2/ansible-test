@@ -1,0 +1,68 @@
+---
+- name: Installing dependencies
+  apt:
+    name: "{{item}}"
+    state: present
+    update_cache: yes
+  loop:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - gnupg-agent
+    - software-properties-common
+    - pip
+
+- name: Adding GPG key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Adding docker repository to apt
+  apt_repository:
+    repo: deb https://download.docker.com/linux/ubuntu bionic stable
+    state: present
+
+- name: install docker
+  apt:
+    name: "{{item}}"
+    state: latest
+    update_cache: yes
+  loop:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+    - python3-docker
+
+
+- name: Check if docker is active
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Ensure group "docker" exists
+  group:
+    name: docker
+    state: present
+  
+- name: Adding user1 to docker group
+  user:
+    name: user1
+    groups: docker
+    append: yes 
+
+- name: Installing docker-compose
+  get_url:
+    url: https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64
+    dest: /usr/local/bin/docker-compose
+    mode: 'u+x,g+x'
+
+- name: Change file ownership, group and perms
+  file:
+    path: /usr/local/bin/docker-compose
+    owner: user1
+    group: user1
+
+- name: Pip install docker-compose for Ansible's docker_compose
+  pip:
+    name: "docker-compose"
